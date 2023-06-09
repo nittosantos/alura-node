@@ -29,6 +29,15 @@ app.put('/livros/:id', (req, res) => {
   res.json(books)
 })
 
+app.delete('/livros/:id', (req, res) => {
+  const {id} = req.params
+  const index = searchBook(id)
+
+  books.splice(index, 1)
+
+  res.send(`Book ${id} has been removed`)
+})
+
 app.get('/livros/:id', (req, res) => {
   const index = searchBook(req.params.id)
 
