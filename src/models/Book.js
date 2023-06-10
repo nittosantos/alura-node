@@ -4,7 +4,7 @@ const bookSchema = new mongoose.Schema(
   {
     id: { type: 'string'},
     title: { type: 'string', required: true},
-    author: { type: 'string', required: true},
+    author: { type: mongoose.Schema.Types.ObjectId, ref:'authors', required: true},
     publish: { type: 'string', required: true},
     publish: { type: 'string', required: true},
     numberOfPages: { type: Number}
