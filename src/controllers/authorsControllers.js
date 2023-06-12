@@ -2,52 +2,54 @@ import authors from '../models/Author.js';
 
 class AuthorController {
 
-  static getAllAuthors = async (req, res) => {
+  static getAllAuthors = async (req, res, next) => {
     try {
       const authorResult = await authors.find();
 
       res.status(200).json(authorResult);
     } catch (err) {
-      res.status(500).send({message:`${err.message} - URL not found`});
+      next(err);
     }
-
   };
 
-  static getAuthorById = async (req, res) => {
+  static getAuthorById = async (req, res, next) => {
 
     try {
       const { id } = req.params;
       const authorResult = await authors.findById(id);
-      res.status(200).json(authorResult);
 
+      if (authorResult !== null) {
+        res.status(200).json(authorResult);
+      } else {
+        res.status(404).send({message:'Id not found'});
+      }
     } catch(err) {
-      res.status(400).send({message:`${err.message} - Id not found`});
-
+      next(err);
     }
   };
 
-  static registerAuthor = async (req, res) => {
+  static registerAuthor = async (req, res, next) => {
     try {
       const author = new authors(req.body);
       const result = await author.save();
       res.status(201).send(result.toJSON());
 
     } catch (err) {
-      res.status(500).send({message: `${err.message} - Failed to register Author`});
+      next(err);
     }
   };
 
-  static updateAuthor = async (req, res) => {
+  static updateAuthor = async (req, res, next) => {
     try {
       const { id } = req.params;
       await authors.findByIdAndUpdate(id, {$set: req.body});
       res.status(200).send({message: 'book updated successfully'});
     }catch (err) {
-      res.status(500).send({message: `${err.message} - Failed to update Author`});
+      next(err);
     }
   };
 
-  static deleteAuthor = async (req, res) => {
+  static deleteAuthor = async (req, res, next) => {
 
     try {
       const { id } = req.params;
@@ -55,7 +57,7 @@ class AuthorController {
       res.status(200).send({message: 'Author has been removed'});
 
     } catch (err) {
-      res.status(500).send({message: `${err.message} - Failed to remove Author`});
+      next(err);
     }
   };
 
