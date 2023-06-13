@@ -1,3 +1,4 @@
+import NotFound from '../error/NotFound.js';
 import authors from '../models/Author.js';
 
 class AuthorController {
@@ -18,10 +19,10 @@ class AuthorController {
       const { id } = req.params;
       const authorResult = await authors.findById(id);
 
-      if (authorResult !== null) {
+      if (authorResult) {
         res.status(200).json(authorResult);
       } else {
-        res.status(404).send({message:'Id not found'});
+        next(new NotFound('Id do autor não localizado'));
       }
     } catch(err) {
       next(err);
@@ -42,8 +43,13 @@ class AuthorController {
   static updateAuthor = async (req, res, next) => {
     try {
       const { id } = req.params;
-      await authors.findByIdAndUpdate(id, {$set: req.body});
-      res.status(200).send({message: 'book updated successfully'});
+      const authorResult = await authors.findByIdAndUpdate(id, {$set: req.body});
+
+      if (authorResult) {
+        res.status(200).send({message: 'book updated successfully'});
+      } else {
+        next(new NotFound('Id do autor não localizado'));
+      }
     }catch (err) {
       next(err);
     }
@@ -53,8 +59,14 @@ class AuthorController {
 
     try {
       const { id } = req.params;
-      await authors.findByIdAndDelete(id);
-      res.status(200).send({message: 'Author has been removed'});
+      const authorResult = await authors.findByIdAndDelete(id);
+
+      if (authorResult) {
+        res.status(200).send({message: 'Author has been removed'});
+      } else {
+        next(new NotFound('Id do autor não localizado'));
+      }
+
 
     } catch (err) {
       next(err);
