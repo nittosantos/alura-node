@@ -1,15 +1,14 @@
 import NotFound from '../error/NotFound.js';
-import { books } from '../models/index.js';
+import { authors, books } from '../models/index.js';
 
 class BookController {
 
   static getAllBooks = async (req, res, next) => {
     try {
-      const result = await books.find()
-        .populate('author')
-        .exec();
+      const searchBooks = books.find();
+      req.result = searchBooks;
 
-      res.status(200).json(result);
+      next();
     } catch (err) {
       next(err);
     }
@@ -33,12 +32,19 @@ class BookController {
     }
   };
 
-  static getBookByPublish = async (req, res, next) => {
+  static getBookByFilter = async (req, res, next) => {
     try {
-      const { publish } = req.query;
-      const result = await books.find({'publish': publish});
+      const search = await processSearch(req.query);
+      if (search) {
+        const resultBooks = books
+          .find(search)
+          .populate('author');
 
-      res.status(200).json(result);
+        req.result = resultBooks;
+        next();
+      } else {
+        res.status(200).send([]);
+      }
     } catch (err) {
       next(err);
     }
@@ -83,6 +89,34 @@ class BookController {
     }
   };
 
+}
+
+async function processSearch(params) {
+  const { publish, title, minPag, maxPag, authorName } = params;
+
+  let search = {};
+
+  if (publish) search.publish = publish;
+  if (title) search.title = { $regex: title, $options: 'i' };
+
+  if (minPag || maxPag) search.numberOfPages = {};
+
+  // GTE = GREATER THAN OR EQUAL = MAIOR OU IGUAL QUE
+  if(minPag) search.numberOfPages.$gte = minPag;
+  //LTE = LESS THAN OR EQUAL = MENOR OU IGUAL QUE
+  if(maxPag) search.numberOfPages.$lte = maxPag;
+
+  if (authorName) {
+    const author = await authors.findOne({name: authorName});
+
+    if (author) {
+      search.author = author._id;
+    } else {
+      search = null;
+    }
+  }
+
+  return search;
 }
 
 export default BookController;
